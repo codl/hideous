@@ -1,0 +1,139 @@
+<html>
+<head>
+<style type="text/css">
+    #toolbox { float:left; padding:0; }
+    #toolbox li { list-style-type:none; border: 1px solid gray; border-radius: 3px; cursor:pointer; line-height: 16px; padding: 1px; }
+    #toolbox li img { vertical-align: middle; }
+    #toolbox li.active { border-color: black; background: gray; }
+    #viewport {border:1px solid gray; background: #efe;}
+</style>
+</head>
+<body>
+<ul id="toolbox"></ul>
+<div id="viewport-container"><canvas id="viewport"></canvas></div>
+<canvas id="editing" width="50" height="50"></canvas>
+</body>
+</html>
+<script type="application/javascript">
+    function scale(source, dest, factor) {
+        dest.width = Math.floor(source.width*factor);
+        dest.height = Math.floor(source.height*factor);
+        if (factor >= 1) {
+            var srcdata = source.getContext("2d").getImageData(0, 0, source.width, source.height);
+            var destctx = dest.getContext("2d");
+            for (var y=0; y < source.height; y++) {
+                for (var x=0; x < source.width; x++) {
+                    srcidx = 4*source.width*y + 4*x;
+                    destctx.clearRect(Math.floor(x*factor), Math.floor(y*factor), Math.floor(factor)+1, Math.floor(factor)+1);
+                    destctx.fillStyle = "rgba("+srcdata.data[srcidx]+","+srcdata.data[srcidx+1]+","+srcdata.data[srcidx+2]+","+srcdata.data[srcidx+3]+")";
+                    destctx.fillRect(Math.floor(x*factor), Math.floor(y*factor), Math.floor(factor)+1, Math.floor(factor)+1);
+                }
+            }
+        } else {
+            // If we're downscaling, there is no point in scaling precisely.
+            var destctx = dest.getContext("2d");
+            destctx.drawImage(source, 0, 0, source.width, source.height, 0, 0, dest.width, dest.height);
+        }
+    }
+    var toolbox = document.getElementById("toolbox");
+    function pencil(e) {
+        e.preventDefault();
+        var x = e.clientX - viewport.offsetLeft + document.body.scrollLeft
+            + document.documentElement.scrollLeft;
+        var y = e.clientY - viewport.offsetTop + document.body.scrollTop
+            + document.documentElement.scrollTop;
+        x = Math.floor(x / viewport.scale);
+        y = Math.floor(y / viewport.scale);
+        var srcctx = viewport.curlayer.getContext("2d");
+        srcctx.fillStyle = viewport.color;
+        srcctx.fillRect(x, y, 1, 1);
+        var destctx = viewport.getContext("2d");
+        destctx.fillStyle = viewport.color;
+        destctx.fillRect(Math.floor(x*viewport.scale), Math.floor(y*viewport.scale), Math.floor(viewport.scale), Math.floor(viewport.scale));
+    }
+    var pencilbtn = document.createElement("li");
+    pencilbtn.className = "active";
+    pencilbtn.innerHTML = "<img alt='pencil' src='data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%10%00%00%00%10%08%06%00%00%00%1F%F3%FFa%00%00%00%19tEXtSoftware%00Adobe%20ImageReadyq%C9e%3C%00%00%03iiTXtXML%3Acom.adobe.xmp%00%00%00%00%00%3C%3Fxpacket%20begin%3D%22%EF%BB%BF%22%20id%3D%22W5M0MpCehiHzreSzNTczkc9d%22%3F%3E%20%3Cx%3Axmpmeta%20xmlns%3Ax%3D%22adobe%3Ans%3Ameta%2F%22%20x%3Axmptk%3D%22Adobe%20XMP%20Core%205.0-c060%2061.134777%2C%202010%2F02%2F12-17%3A32%3A00%20%20%20%20%20%20%20%20%22%3E%20%3Crdf%3ARDF%20xmlns%3Ardf%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%22%3E%20%3Crdf%3ADescription%20rdf%3Aabout%3D%22%22%20xmlns%3AxmpRights%3D%22http%3A%2F%2Fns.adobe.com%2Fxap%2F1.0%2Frights%2F%22%20xmlns%3AxmpMM%3D%22http%3A%2F%2Fns.adobe.com%2Fxap%2F1.0%2Fmm%2F%22%20xmlns%3AstRef%3D%22http%3A%2F%2Fns.adobe.com%2Fxap%2F1.0%2FsType%2FResourceRef%23%22%20xmlns%3Axmp%3D%22http%3A%2F%2Fns.adobe.com%2Fxap%2F1.0%2F%22%20xmpRights%3AMarked%3D%22False%22%20xmpMM%3ADocumentID%3D%22xmp.did%3A704EB464038711E1ADE2CBC300AB5626%22%20xmpMM%3AInstanceID%3D%22xmp.iid%3A704EB463038711E1ADE2CBC300AB5626%22%20xmp%3ACreatorTool%3D%22Adobe%20Photoshop%20CS3%20Windows%22%3E%20%3CxmpMM%3ADerivedFrom%20stRef%3AinstanceID%3D%22uuid%3AAC1F2E83324ADF11AAB8C5390D85B5B3%22%20stRef%3AdocumentID%3D%22uuid%3AC9D349664A3CDD11B08ABBBCFF172156%22%2F%3E%20%3C%2Frdf%3ADescription%3E%20%3C%2Frdf%3ARDF%3E%20%3C%2Fx%3Axmpmeta%3E%20%3C%3Fxpacket%20end%3D%22r%22%3F%3E1%3E%C5%89%00%00%02%26IDATx%DA%8C%93QHSQ%18%C7%FFg%3Bw%BE6%B6%A7(%8C6%12%B3%3DI%04%17%C4%22%8CE%D1C%09a%1A4%8B%88z%DB%1EB%22%0A%1B%F8%D0C%81%F4%92D1t%B4Zb(%A3%B5%D5%B0%968%CA%8D%09ME%03%C7%12%15%94%8D%C6%BDy%BD%DB%3D%DD%AD%157k%AE%03%1F%E7%7C%7C%FF%DF9%DFw%BEs%08j%0C%5B%03A%C7)%20%B1%D8%5E%F6%EF%F9%FDM%05%C0%F9%0D%F0%7C%05%C6i-%F0%C0%BE%9F~b%B1%3C%D5%CF%9A%CD%CE%A3.W%F7DO%CF.%05%A0%B4%16%A8%19VY%96%DB%F8t%BA%5Br%3Aa%EB%EC%3C%16%18%1C%DC%20%FF%01%02%0C%873%AB%E6%8B%0EW%BA%2B%95J%C1h4%C2%DB%D8%18%D8%BD%B9y%93%EE%AF%07%CE%B4%02%07%5B%AA%D4%A2%C2%B2%8C%EBW%AF%B9%EC%E1%B1%16%ECm~%06%9E%E7%DD%3B%F5z%AF%95%E3f%E8%8D%F3%00!%DB%C3%A7%3B%FA%EC%C5%A2%0C%8B%C5%82%E1GM%2F%05%81%FA%E7%08%99%99%E38T%BDD-%2CI%22VV%16%10%9F%7C1n%DD%83~E%D1%25%7F%C9h-X%10r%C8f%97%10%7D%FB%F4%BDz%A0%5BO%C9%1B%AD%94n%07%E7r%AB%10%84%2C%5E%8D%0EE%0D%1C%EE%A8%3D%0Bo%95%D3j%F0%DAZ%1A%92%F4%1D%C3%3E%CF%84%C1%80%5EF%11%D2J%D5%96%96%8D%FE%0B%5E%5E%9E%87%A2%140%F4%C43%A9%C2%B7%19%23%BFa%DF%18%83(%8A%7Ff%C0%18%1A%C4%3C.%9Fu%F4%D93%99%CF%AA%AF%E0%F1%807%A6%A6%7DK%8D%95%E1%910%C3H%88%FDU1%15%25%18%0AE%B4%9D%BB%129%3E5%E5%86%C9d%C6%C3%07%BE%8F%B4%04S%BC%0EF%81%60T%A9%DA%2C%9A%17I%B3%8Dw%B4%13%9Dn%87%D1%D4%25%DE%BF%EB%88%D7%D51%F7%87%24%09%BE%FB%C4j%FD5%D0%F5%3CN%1E%3Ar%A1u%F4y%FFt%24%E4%8F%7DYB%20%92%40%5C-%CC%A4%C6%15%8D%15%B7%F8%A5%DD%95%D2%1Bd%97N%90%81%D9%0Cb%C9%05L%E7E%B6Q%11%17J%97%5D%99%B5k%B9%12%2F%DB%0F%01%06%00%D9%0E%08%7BnRn%06%00%00%00%00IEND%AEB%60%82'/>"
+    pencilbtn.addEventListener("click", function(e){
+        viewport.tool = pencil;
+        for (var i = 0; i < toolbox.childNodes.length; i++) {
+            toolbox.childNodes[i].className = ""
+            }
+        pencilbtn.className = "active";
+        }, false);
+
+    toolbox.appendChild(pencilbtn)
+    function eraser(e) {
+        e.preventDefault()
+        var x = e.clientX - viewport.offsetLeft + document.body.scrollLeft
+            + document.documentElement.scrollLeft;
+        var y = e.clientY - viewport.offsetTop + document.body.scrollTop
+            + document.documentElement.scrollTop;
+        x = Math.floor(x / viewport.scale);
+        y = Math.floor(y / viewport.scale);
+        var srcctx = viewport.curlayer.getContext("2d");
+        srcctx.clearRect(x, y, 1, 1);
+        var destctx = viewport.getContext("2d");
+        destctx.clearRect(Math.floor(x*viewport.scale), Math.floor(y*viewport.scale), Math.floor(viewport.scale), Math.floor(viewport.scale));
+    }
+    var eraserbtn = document.createElement("li");
+    eraserbtn.innerHTML = "<img alt='eraser' src='data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%10%00%00%00%10%08%06%00%00%00%1F%F3%FFa%00%00%00%19tEXtSoftware%00Adobe%20ImageReadyq%C9e%3C%00%00%02JIDATx%DAt%92O%88%12Q%1C%C7%7Fo%14%17%3D%F8%E7%D0E00%CC%5Bx%09%A6%0E)%2Bc%E8%CA%1Er%E9R%B7%3A%08A%20x%90%25%5C%92%60%F1%E2!%82%5Df%09%22%A8%E8T%EC%CE%D6%5E*OQ%7BY%F0V%1E%FCs%0C%FC%93%07u%D4%99y%FD%DE%CB%91%C9%B5%1F%7Cy%8F%F7%DE%E7%F7%F7%11%B0X0%18%04I%92%20%1C%0E%C3%E5%C2%01%08xFP%02%10%91%02H%00%94%E0%FAI%03%F8%AE%03%05%0Deg%60%20%10%80X%2C%06%A1P%08%1C%0E%07%2C%D95%03%A8%B4%F1%F1%D5%13B%08(%A9%BB%A6%DFo%EC%D2%9E%C9dx%E4%15%20%B3%EB%06%40%22%AD%BC%2C%F5%BB%5DLE%80%CD%93%D7%A5%F7%A9%3B6%9E%18%C0W%C1%EF%F7%C3%7F%8C%C177%0E_%94z%08S%8A%C9%1B%06%F4z%3D%B8u%F2fG%07H%E3%9B%1B%C2*%12%1FG~%EC%DE%BF%92z%F7%FCq%AF%D3%E10E%D8t%D28%3B%83%C4%FE%EE6%3A%D9%14V%C1%93%C9D%CC%E5r%B2%96%B8%CAA%98%C3l%DFm6%FF%EE)o%A2MX%86UU%15%F3%F9%BC%3C%9DNA%D7up%DD%96%16N%3As%D8%E3%F1%C0%D1%83%ED%A7xz%2CX%E1%F1x%2C%16%0A%05%193%E0%B0%A9%B5%CC%3A%FCj4%D0%87%C1a%E5%E1%A3g8%C6%23%CC%A3*X%23%17%8BE%19%D7%7F%60%A6%26F6%B6%E2%1C%3E%CE%ED%ECa%ED%87%88%7D%E1c4%23%97%CBey4%1A%9Dkh%BB%DD%C6%E9%09%E0v%BBa%EB%ED~%F6%1E%A1MB%C9g%F3%DE%CE%22W*%15y8%1C%9E%83%5B%AD%D6%02N%A7%D3YM%D3Nq%0E5%F6%8B~%82%0Au%AA%82%DD%04Y%AAVci%9Bp%3C%1E%E7%B0%CB%E5%AA%D5%11%FC%40%7Fs%98%19I%26%93%11t%22*%8A%22%0F%06%03~%D8%C0%86%B1o%EB%F3%F9%20%1A%8Df%D1%F9%A9%CDf%AB%B1%E6%B2%1EY%8Dx%BD%5E%16%25%82%D1%C4j%B5*%F7%FB%FD%C5%A5(%8A%1C%C6m%8DM%60%95%B1r%7C%A8%0BN%A7%F3%12F%BD8%9B%CDx9%F3%CFRg%09%A1f%A8%E9%7Ce%D2X%D5(%839p%A2%5C%A856%D1%B9%0C%8Bt%CB%AA%2F%DD%D1%3F%02%0C%00%10%D1Va%82%E3%E2f%00%00%00%00IEND%AEB%60%82'/>"
+    eraserbtn.addEventListener("click", function(e){
+        viewport.tool = eraser;
+        for (var i = 0; i < toolbox.childNodes.length; i++) {
+            toolbox.childNodes[i].className = ""
+            }
+        eraserbtn.className = "active";
+        }, false);
+
+    toolbox.appendChild(eraserbtn)
+
+    fgdinput = document.createElement("input");
+    fgdinput.className = "color {hash:true}";
+    fgdinput.value = "#000000";
+    fgdinput.addEventListener("change", function(e){
+            viewport.foreground = fgdinput.value;
+            }, false);
+    document.body.appendChild(fgdinput);
+
+    bgdinput = document.createElement("input");
+    bgdinput.className = "color {hash:true}";
+    bgdinput.value = "#FF00FF";
+    bgdinput.addEventListener("change", function(e){
+            viewport.background = bgdinput.value;
+            }, false);
+    document.body.appendChild(bgdinput);
+
+
+    var viewport = document.getElementById("viewport");
+    viewport.scale = 7;
+    viewport.curlayer = document.getElementById("editing");
+    viewport.curframe = [ document.getElementById("editing") ];
+    viewport.tool = pencil;
+    viewport.foreground = "rgba(0,0,0,255)";
+    viewport.background = "rgba(255,0,255,255)";
+    viewport.color = viewport.background;
+    viewport.update = function() {
+        scale(viewport.curlayer, viewport, viewport.scale);
+    }
+    viewport.addEventListener("mousedown", function(e){
+        e.preventDefault()
+        if (e.button == 2) {
+            viewport.color = viewport.background;
+        } else  {
+            viewport.color = viewport.foreground;
+        }
+        viewport.tool(e);
+        viewport.addEventListener("mousemove", viewport.tool, false);
+    }, false);
+    viewport.addEventListener("contextmenu", function(e){
+        e.preventDefault()
+    }, false);
+    viewport.addEventListener("mouseup", function(e){
+        e.preventDefault()
+        viewport.removeEventListener("mousemove", viewport.tool, false);
+        viewport.update();
+    }, false);
+    viewport.update()
+</script>
+<script type="text/javascript" src="jscolor/jscolor.js"></script>
